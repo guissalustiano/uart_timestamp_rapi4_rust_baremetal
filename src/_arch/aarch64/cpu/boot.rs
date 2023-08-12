@@ -12,18 +12,11 @@
 //! crate::cpu::boot::arch_boot
 
 use core::arch::asm;
-use core::arch::global_asm;
 use core::ptr;
 use crate::time::ARCH_TIMER_COUNTER_FREQUENCY;
 
 use aarch64_cpu::registers::MPIDR_EL1;
 use tock_registers::interfaces::Readable;
-
-/*
-global_asm!(
-    include_str!("boot.s"),
-);
-*/
 
 extern "C" {
     static mut _bss_begin: u8;

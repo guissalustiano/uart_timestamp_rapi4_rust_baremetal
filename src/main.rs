@@ -117,6 +117,8 @@
 #![no_std]
 #![feature(naked_functions)]
 
+use crate::bsp::driver::GPIO;
+
 mod bsp;
 mod console;
 mod cpu;
@@ -168,8 +170,19 @@ fn kernel_main() -> ! {
     // Test a failing timer case.
     time::time_manager().spin_for(Duration::from_nanos(1));
 
+    GPIO.pin_42_config_output();
+
     loop {
-        info!("Spinning for 1 second");
+        info!("Turning ON the LED");
+        GPIO.pin_42_set();
+
+        info!("Waiting for 1 second");
+        time::time_manager().spin_for(Duration::from_secs(1));
+
+        info!("Turning OFF the LED");
+        GPIO.pin_42_clr();
+
+        info!("Waiting for 1 second");
         time::time_manager().spin_for(Duration::from_secs(1));
     }
 }

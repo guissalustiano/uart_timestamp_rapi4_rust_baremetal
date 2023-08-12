@@ -14,7 +14,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 static PL011_UART: device_driver::PL011Uart =
     unsafe { device_driver::PL011Uart::new(mmio::PL011_UART_START) };
-static GPIO: device_driver::GPIO = unsafe { device_driver::GPIO::new(mmio::GPIO_START) };
+pub static GPIO: device_driver::GPIO = unsafe { device_driver::GPIO::new() };
 
 //--------------------------------------------------------------------------------------------------
 // Private Code
