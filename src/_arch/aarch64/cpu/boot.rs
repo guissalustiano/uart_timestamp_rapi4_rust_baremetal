@@ -19,10 +19,11 @@ use crate::time::ARCH_TIMER_COUNTER_FREQUENCY;
 use aarch64_cpu::registers::MPIDR_EL1;
 use tock_registers::interfaces::Readable;
 
+/*
 global_asm!(
     include_str!("boot.s"),
-    CONST_CORE_ID_MASK = const 0b11
 );
+*/
 
 extern "C" {
     static mut _bss_begin: u8;
@@ -36,22 +37,35 @@ extern "C" {
 #[link_section = ".text._start"]
 #[no_mangle]
 pub unsafe extern "C" fn _init_rust() -> ! {
-     // Init SP
+     // Init SP and zero out the .bss section
      asm!("
-          adrp x0, {0}
-          adr x0, {0}
+          adrp x0, {stack_end}
+          adr x0, {stack_end}
           mov sp, x0
 
-          b {1}
+          adrp x0, {bss_begin}
+          adr x0, {bss_begin}
+
+          adrp x1, {bss_end}
+          adr x1, {bss_end}
+
+          7:
+            cmp	x0, x1
+            b.eq	{func_start_rust}
+            stp	xzr, xzr, [x0], #16
+            b	7b
+
+          b {func_start_rust}
       ", 
-      sym _stack_end,
-      sym _start_rust,
+      stack_end = sym _stack_end,
+      bss_begin = sym _bss_begin,
+      bss_end = sym _bss_end,
+      func_start_rust = sym _start_rust,
       options(noreturn));
 }
 
 #[allow(dead_code)]
 #[link_section = ".text._start"]
-#[no_mangle]
 pub unsafe fn _start_rust() -> ! {
     // Stop all other cores except core 0
     if get_cpu_id() != 0 {
