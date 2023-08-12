@@ -36,7 +36,7 @@ struct GenericTimerCounterValue(u64);
 /// Boot assembly code overwrites this value with the value of CNTFRQ_EL0 before any Rust code is
 /// executed. This given value here is just a (safe) dummy.
 #[no_mangle]
-static ARCH_TIMER_COUNTER_FREQUENCY: NonZeroU32 = NonZeroU32::MIN;
+pub static ARCH_TIMER_COUNTER_FREQUENCY: NonZeroU32 = NonZeroU32::MIN;
 
 //--------------------------------------------------------------------------------------------------
 // Private Code

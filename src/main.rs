@@ -115,6 +115,7 @@
 #![feature(unchecked_math)]
 #![no_main]
 #![no_std]
+#![feature(naked_functions)]
 
 mod bsp;
 mod console;
@@ -131,7 +132,7 @@ mod time;
 ///
 /// - Only a single core must be active and running this function.
 /// - The init calls in this function must appear in the correct order.
-unsafe fn kernel_init() -> ! {
+pub unsafe fn kernel_init() -> ! {
     // Initialize the BSP driver subsystem.
     if let Err(x) = bsp::driver::init() {
         panic!("Error initializing BSP driver subsystem: {}", x);

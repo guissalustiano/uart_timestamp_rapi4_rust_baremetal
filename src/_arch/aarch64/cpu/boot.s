@@ -37,8 +37,8 @@ _start:
 	// If execution reaches here, it is the boot core.
 
 	// Initialize DRAM.
-	ADR_REL	x0, __bss_start
-	ADR_REL x1, __bss_end_exclusive
+	ADR_REL	x0, _bss_begin
+	ADR_REL x1, _bss_end
 
 .L_bss_init_loop:
 	cmp	x0, x1
@@ -49,7 +49,7 @@ _start:
 	// Prepare the jump to Rust code.
 .L_prepare_rust:
 	// Set the stack pointer.
-	ADR_REL	x0, __boot_core_stack_end_exclusive
+	ADR_REL	x0, _stack_end
 	mov	sp, x0
 
 	// Read the CPU's timer counter frequency and store it in ARCH_TIMER_COUNTER_FREQUENCY.
@@ -61,7 +61,7 @@ _start:
 	str	w2, [x1]
 
 	// Jump to Rust code.
-	b	_start_rust
+	b	_init_rust
 
 	// Infinitely wait for events (aka "park the core").
 .L_parking_loop:

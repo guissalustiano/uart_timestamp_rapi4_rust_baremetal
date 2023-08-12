@@ -8,6 +8,8 @@
 #[path = "_arch/aarch64/time.rs"]
 mod arch_time;
 
+pub use arch_time::ARCH_TIMER_COUNTER_FREQUENCY;
+
 use core::time::Duration;
 
 //--------------------------------------------------------------------------------------------------
