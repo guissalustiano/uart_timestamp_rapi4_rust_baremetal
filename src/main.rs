@@ -110,7 +110,6 @@
 #![feature(asm_const)]
 #![feature(const_option)]
 #![feature(format_args_nl)]
-#![feature(nonzero_min_max)]
 #![feature(panic_info_message)]
 #![feature(trait_alias)]
 #![feature(unchecked_math)]
