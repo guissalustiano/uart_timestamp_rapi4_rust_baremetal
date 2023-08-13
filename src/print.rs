@@ -39,7 +39,7 @@ macro_rules! println {
 #[macro_export]
 macro_rules! info {
     ($string:expr) => ({
-        let timestamp = $crate::time::time_manager().uptime();
+        let timestamp = $crate::time::uptime();
 
         $crate::print::_print(format_args!(
             concat!("[  {:>3}.{:06}] ", $string, "\r\n"),
@@ -48,7 +48,7 @@ macro_rules! info {
         ));
     });
     ($format_string:expr, $($arg:tt)*) => ({
-        let timestamp = $crate::time::time_manager().uptime();
+        let timestamp = $crate::time::uptime();
 
         $crate::print::_print(format_args!(
             concat!("[  {:>3}.{:06}] ", $format_string, "\r\n"),
@@ -63,7 +63,7 @@ macro_rules! info {
 #[macro_export]
 macro_rules! warn {
     ($string:expr) => ({
-        let timestamp = $crate::time::time_manager().uptime();
+        let timestamp = $crate::time::uptime();
 
         $crate::print::_print(format_args!(
             concat!("[W {:>3}.{:06}] ", $string, "\r\n"),
@@ -72,7 +72,7 @@ macro_rules! warn {
         ));
     });
     ($format_string:expr, $($arg:tt)*) => ({
-        let timestamp = $crate::time::time_manager().uptime();
+        let timestamp = $crate::time::uptime();
 
         $crate::print::_print(format_args!(
             concat!("[W {:>3}.{:06}] ", $format_string, "\r\n"),

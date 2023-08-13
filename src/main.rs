@@ -55,14 +55,14 @@ fn kernel_main() -> ! {
 
     info!(
         "Architectural timer resolution: {} ns",
-        time::time_manager().resolution().as_nanos()
+        time::resolution().as_nanos()
     );
 
     info!("Drivers loaded:");
     driver::driver_manager().enumerate();
 
     // Test a failing timer case.
-    time::time_manager().spin_for(Duration::from_nanos(1));
+    time::spin_for(Duration::from_nanos(1));
 
     GPIO.pin_42_config_output();
 
@@ -71,12 +71,12 @@ fn kernel_main() -> ! {
         GPIO.pin_42_set();
 
         info!("Waiting for 1 second");
-        time::time_manager().spin_for(Duration::from_secs(1));
+        time::spin_for(Duration::from_secs(1));
 
         info!("Turning OFF the LED");
         GPIO.pin_42_clr();
 
         info!("Waiting for 1 second");
-        time::time_manager().spin_for(Duration::from_secs(1));
+        time::spin_for(Duration::from_secs(1));
     }
 }

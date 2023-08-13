@@ -42,7 +42,7 @@ fn panic(info: &PanicInfo) -> ! {
     // Protect against panic infinite loops if any of the following code panics itself.
     panic_prevent_reenter();
 
-    let timestamp = crate::time::time_manager().uptime();
+    let timestamp = crate::time::uptime();
     let (location, line, column) = match info.location() {
         Some(loc) => (loc.file(), loc.line(), loc.column()),
         _ => ("???", 0, 0),

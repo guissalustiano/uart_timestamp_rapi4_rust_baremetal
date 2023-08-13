@@ -1,5 +1,4 @@
 use core::arch::asm;
-use core::ptr;
 use crate::time::ARCH_TIMER_COUNTER_FREQUENCY;
 
 use aarch64_cpu::registers::MPIDR_EL1;
