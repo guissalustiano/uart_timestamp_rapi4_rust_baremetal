@@ -1,5 +1,5 @@
 [package]
-name = "mingo"
+name = "labproc"
 version = "0.7.0"
 authors = ["Andre Richter <andre.o.richter@gmail.com>"]
 edition = "2021"
@@ -16,3 +16,6 @@ bench = false
 [dependencies]
 tock-registers = { version = "0.8.x", features = ["register_types"]}
 aarch64-cpu = { version = "9.x.x" }
+embedded-hal = {version = "0.2.7", features = ["unproven"]}
+nb = "1.1.0"
+bcm2711-pac = { path = "../bcm2711-pac" }

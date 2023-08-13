@@ -9,18 +9,21 @@
 #![no_std]
 #![feature(naked_functions)]
 
-use crate::bsp::driver::GPIO;
+use embedded_hal::digital::v2::OutputPin;
+
+use crate::{time::spin_for, gpio::pin::{Pin, PinId, Gpio42, PushPullOutput}};
 
 // Real entrypoint
 mod boot;
 
-mod bsp;
 mod console;
 mod driver;
 mod panic_wait;
 mod print;
 mod synchronization;
 mod time;
+mod bsp;
+mod gpio;
 
 /// Early init code.
 ///
@@ -30,7 +33,7 @@ mod time;
 /// - The init calls in this function must appear in the correct order.
 pub unsafe fn kernel_init() -> ! {
     // Initialize the BSP driver subsystem.
-    if let Err(x) = bsp::driver::init() {
+    if let Err(x) = bsp::init() {
         panic!("Error initializing BSP driver subsystem: {}", x);
     }
 
@@ -51,7 +54,6 @@ fn kernel_main() -> ! {
         env!("CARGO_PKG_NAME"),
         env!("CARGO_PKG_VERSION")
     );
-    info!("Booting on: {}", bsp::board_name());
 
     info!(
         "Architectural timer resolution: {} ns",
@@ -64,19 +66,14 @@ fn kernel_main() -> ! {
     // Test a failing timer case.
     time::spin_for(Duration::from_nanos(1));
 
-    GPIO.pin_42_config_output();
+    let led_pin: Pin<Gpio42, <Gpio42 as PinId>::Reset> = unsafe { Pin::new() };
+    let mut led_pin: Pin<_, PushPullOutput> = led_pin.into_mode();
 
     loop {
-        info!("Turning ON the LED");
-        GPIO.pin_42_set();
+        led_pin.set_high().unwrap();
+        spin_for(Duration::from_millis(200));
 
-        info!("Waiting for 1 second");
-        time::spin_for(Duration::from_secs(1));
-
-        info!("Turning OFF the LED");
-        GPIO.pin_42_clr();
-
-        info!("Waiting for 1 second");
-        time::spin_for(Duration::from_secs(1));
+        led_pin.set_low().unwrap();
+        spin_for(Duration::from_millis(1000));
     }
 }
