@@ -4,7 +4,7 @@
 
 //! A panic handler that infinitely waits.
 
-use crate::{cpu, println};
+use crate::println;
 use core::panic::PanicInfo;
 
 //--------------------------------------------------------------------------------------------------
@@ -26,9 +26,6 @@ use core::panic::PanicInfo;
 fn panic_prevent_reenter() {
     use core::sync::atomic::{AtomicBool, Ordering};
 
-    #[cfg(not(target_arch = "aarch64"))]
-    compile_error!("Add the target_arch to above's check if the following code is safe to use");
-
     static PANIC_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
 
     if !PANIC_IN_PROGRESS.load(Ordering::Relaxed) {
@@ -37,7 +34,7 @@ fn panic_prevent_reenter() {
         return;
     }
 
-    cpu::wait_forever()
+    aarch64_cpu::asm::wfe();
 }
 
 #[panic_handler]
@@ -63,5 +60,7 @@ fn panic(info: &PanicInfo) -> ! {
         info.message().unwrap_or(&format_args!("")),
     );
 
-    cpu::wait_forever()
+    loop {
+        aarch64_cpu::asm::wfe();
+    }
 }
