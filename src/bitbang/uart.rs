@@ -1,7 +1,9 @@
 extern crate embedded_hal as hal;
 extern crate nb;
 
-use std::{thread, time::Duration};
+use crate::{time::spin_for, gpio::pin::{Pin, PinId, Gpio42, PushPullOutput}};
+
+use core::time::Duration;
 
 pub enum ParityMode{
     None,
@@ -17,27 +19,21 @@ pub enum StopBitsOption{
 }
 
 pub struct SoftUartTransmitter{
-    system_clock: u32, // System clock in Hz
     baud_rate: u32,    // Baud rate in bauds/s
     stop_bits: StopBitsOption,  // Number of stop bits
     parity: ParityMode,  // Parity mode
-
-    num_clocks_to_push: u32,
 }
 
 impl SoftUartTransmitter{
     pub fn new(
-        system_clock: u32, // System clock in Hz
         baud_rate: u32,    // Baud rate in bauds/s
         stop_bits: StopBitsOption,  // Number of stop bits
         parity: ParityMode,  // Parity mode
     ) -> Self {
         SoftUartTransmitter{
-            system_clock: system_clock,
             baud_rate: baud_rate,
             stop_bits: stop_bits,
             parity: parity,
-            num_clocks_to_push: system_clock/baud_rate
         }
     }
 
@@ -45,13 +41,6 @@ impl SoftUartTransmitter{
         self.baud_rate
     }
 
-    pub fn get_system_clock(&self) -> u32{
-        self.system_clock
-    }
-
-    pub fn get_clocks_iter(&self) -> u32{
-        self.num_clocks_to_push
-    }
 }
 
 #[derive(Debug)]
@@ -62,15 +51,15 @@ impl hal::serial::Write<u8> for SoftUartTransmitter {
 
     fn write(&mut self, word:u8) -> nb::Result<(), Self::Error>{
         // Emmit start bit
-        println!("Simulated transmission:");
+        // println!("Simulated transmission:");  -- Maybe add debug print
         println!("0"); // Replace with GPIO
-        thread::sleep(Duration::from_secs(1/self.baud_rate as u64));
+        spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
 
         // Emmit data
         for shift in 0..8 {
             let curr_data = (word>>shift)&1;
             println!("{}", curr_data);
-            thread::sleep(Duration::from_secs(1/self.baud_rate as u64));
+            spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
         }
 
         // Emmit parity
@@ -78,11 +67,11 @@ impl hal::serial::Write<u8> for SoftUartTransmitter {
         match self.parity {
             ParityMode::Even => {
                 println!("{}", p);
-                thread::sleep(Duration::from_secs(1/self.baud_rate as u64));
+                spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
             }
             ParityMode::Odd => {
                 println!("{}", !(p==1) as u8);
-                thread::sleep(Duration::from_secs(1/self.baud_rate as u64));
+                spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
             },
             ParityMode::None => {
 
@@ -92,11 +81,10 @@ impl hal::serial::Write<u8> for SoftUartTransmitter {
         // Emmit stop bits
         for _i in 0..self.stop_bits as u8 {
             println!("1");
-            thread::sleep(Duration::from_secs(1/self.baud_rate as u64));
+            spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
         }
 
-        println!("");
-        println!("End of transmission");
+        // println!("End of transmission"); -- Maybe add debug print
         Ok(())
     }
 

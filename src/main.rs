@@ -24,6 +24,7 @@ mod synchronization;
 mod time;
 mod bsp;
 mod gpio;
+mod bitbang;
 
 /// Early init code.
 ///
