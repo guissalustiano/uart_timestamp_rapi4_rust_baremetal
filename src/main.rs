@@ -11,21 +11,24 @@
 
 use embedded_hal::{digital::v2::OutputPin, serial::Write};
 
-use crate::{time::spin_for, gpio::pin::{Pin, PinId, Gpio42, Gpio0, PushPullOutput}};
 use crate::bitbang::uart::*;
+use crate::{
+    gpio::pin::{Gpio0, Gpio42, Pin, PinId, PushPullOutput},
+    time::spin_for,
+};
 
 // Real entrypoint
 mod boot;
 
+mod bitbang;
+mod bsp;
 mod console;
 mod driver;
+mod gpio;
 mod panic_wait;
 mod print;
 mod synchronization;
 mod time;
-mod bsp;
-mod gpio;
-mod bitbang;
 
 /// Early init code.
 ///
@@ -74,13 +77,19 @@ fn kernel_main() -> ! {
     let uart_pin: Pin<Gpio0, <Gpio0 as PinId>::Reset> = unsafe { Pin::new() };
     let uart_pin: Pin<_, PushPullOutput> = uart_pin.into_mode();
 
-    let mut uart = SoftUartTransmitter::<Pin<_, PushPullOutput>>::new(uart_pin, 9600, StopBitsOption::One, ParityMode::Even);
+    let mut uart = SoftUartTransmitter::<Pin<_, PushPullOutput>>::new(
+        uart_pin,
+        9600,
+        StopBitsOption::One,
+        ParityMode::Even,
+    );
 
     loop {
         led_pin.set_high().unwrap();
         spin_for(Duration::from_millis(200));
-         
-        uart.write(0b01001101).unwrap();
+
+        uart.write(0x31).unwrap();
+        uart.write(0x33).unwrap();
 
         led_pin.set_low().unwrap();
         spin_for(Duration::from_millis(1000));
