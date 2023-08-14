@@ -1,8 +1,8 @@
 use embedded_hal as hal;
 use nb;
 
-use crate::{time::spin_for, gpio::pin::{Pin, PinId, Gpio42, PushPullOutput, AnyPin, SpecificPin}};
-use hal::digital::v2::OutputPin;
+use crate::{time::spin_for, gpio::pin::{PushPullOutput, AnyPin, SpecificPin}};
+use hal::{digital::v2::OutputPin, serial::Write};
 
 use core::{time::Duration, convert::Infallible};
 
@@ -47,7 +47,10 @@ impl<T> SoftUartTransmitter<T> where T:AnyPin<Mode = PushPullOutput>{
 
 }
 
-impl <T> hal::serial::Write<u8> for SoftUartTransmitter<T> where T:AnyPin<Mode = PushPullOutput> {
+impl <T> Write<u8> for SoftUartTransmitter<T>
+where
+    T: AnyPin<Mode = PushPullOutput>
+{
     type Error = Infallible;
 
     fn write(&mut self, word:u8) -> nb::Result<(), Self::Error>{
@@ -92,5 +95,22 @@ impl <T> hal::serial::Write<u8> for SoftUartTransmitter<T> where T:AnyPin<Mode =
     fn flush(&mut self) -> nb::Result<(), Self::Error> {
         // Does nothing, since there is no buffer
         Ok(())
+    }
+}
+
+impl <T> Write<&'static str> for SoftUartTransmitter<T>
+where
+    T: AnyPin<Mode = PushPullOutput>
+{
+    type Error = Infallible;
+    fn flush(&mut self) -> nb::Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn write(&mut self, word: &'static str) -> nb::Result<(), Self::Error> {
+        for character in word.bytes() {
+            self.write(character).unwrap();
+        }
+       Ok(())
     }
 }

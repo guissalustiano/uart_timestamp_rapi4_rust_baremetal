@@ -5,9 +5,9 @@
 #![feature(panic_info_message)]
 #![feature(trait_alias)]
 #![feature(unchecked_math)]
+#![feature(naked_functions)]
 #![no_main]
 #![no_std]
-#![feature(naked_functions)]
 
 use embedded_hal::{digital::v2::OutputPin, serial::Write};
 
@@ -79,7 +79,7 @@ fn kernel_main() -> ! {
 
     let mut uart = SoftUartTransmitter::<Pin<_, PushPullOutput>>::new(
         uart_pin,
-        9600,
+        19200,
         StopBitsOption::One,
         ParityMode::Even,
     );
@@ -88,8 +88,20 @@ fn kernel_main() -> ! {
         led_pin.set_high().unwrap();
         spin_for(Duration::from_millis(200));
 
-        uart.write(0x31).unwrap();
-        uart.write(0x33).unwrap();
+        uart.write(
+            "
+\r  _____  _____  _____    _____       _  _       _____  _____  _____
+\r |  _  ||     ||   __|  |  _  | ___ | ||_| ___ |  |  ||   __||  _  |
+\r |   __||   --||__   |  |   __|| . || || ||___||  |  ||__   ||   __|
+\r |__|   |_____||_____|  |__|   |___||_||_|     |_____||_____||__|
+\r
+\r  _____  _____  _____  ___  ___  ___  ___             __          _      _____
+\r |  _  ||     ||   __||_  ||_  ||_  ||_  |   _____   |  |    ___ | |_   |  _  | ___  ___  ___
+\r |   __||   --||__   ||_  |  | ||_  ||  _|  |_____|  |  |__ | .'|| . |  |   __||  _|| . ||  _|
+\r |__|   |_____||_____||___|  |_||___||___|  |_____|  |_____||__,||___|  |__|   |_|  |___||___|
+        ",
+        )
+        .unwrap();
 
         led_pin.set_low().unwrap();
         spin_for(Duration::from_millis(1000));
