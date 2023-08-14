@@ -1,9 +1,10 @@
-extern crate embedded_hal as hal;
-extern crate nb;
+use embedded_hal as hal;
+use nb;
 
-use crate::{time::spin_for, gpio::pin::{Pin, PinId, Gpio42, PushPullOutput}};
+use crate::{time::spin_for, gpio::pin::{Pin, PinId, Gpio42, PushPullOutput, AnyPin, SpecificPin}};
+use hal::digital::v2::OutputPin;
 
-use core::time::Duration;
+use core::{time::Duration, convert::Infallible};
 
 pub enum ParityMode{
     None,
@@ -18,22 +19,25 @@ pub enum StopBitsOption{
     Two
 }
 
-pub struct SoftUartTransmitter{
+pub struct SoftUartTransmitter<T> where T:AnyPin<Mode = PushPullOutput>{
+    tx_pin: SpecificPin<T>,
     baud_rate: u32,    // Baud rate in bauds/s
     stop_bits: StopBitsOption,  // Number of stop bits
     parity: ParityMode,  // Parity mode
 }
 
-impl SoftUartTransmitter{
+impl<T> SoftUartTransmitter<T> where T:AnyPin<Mode = PushPullOutput>{
     pub fn new(
+        tx_pin: SpecificPin<T>,
         baud_rate: u32,    // Baud rate in bauds/s
         stop_bits: StopBitsOption,  // Number of stop bits
         parity: ParityMode,  // Parity mode
     ) -> Self {
         SoftUartTransmitter{
-            baud_rate: baud_rate,
-            stop_bits: stop_bits,
-            parity: parity,
+            tx_pin,
+            baud_rate,
+            stop_bits,
+            parity,
         }
     }
 
@@ -43,22 +47,19 @@ impl SoftUartTransmitter{
 
 }
 
-#[derive(Debug)]
-pub struct UartError;
-
-impl hal::serial::Write<u8> for SoftUartTransmitter {
-    type Error = UartError;
+impl <T> hal::serial::Write<u8> for SoftUartTransmitter<T> where T:AnyPin<Mode = PushPullOutput> {
+    type Error = Infallible;
 
     fn write(&mut self, word:u8) -> nb::Result<(), Self::Error>{
         // Emmit start bit
         // println!("Simulated transmission:");  -- Maybe add debug print
-        println!("0"); // Replace with GPIO
+        self.tx_pin.set_low().unwrap();
         spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
 
         // Emmit data
         for shift in 0..8 {
             let curr_data = (word>>shift)&1;
-            println!("{}", curr_data);
+            self.tx_pin.set_state((curr_data != 0).into()).unwrap();
             spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
         }
 
@@ -66,11 +67,11 @@ impl hal::serial::Write<u8> for SoftUartTransmitter {
         let p = word.count_ones() % 2;
         match self.parity {
             ParityMode::Even => {
-                println!("{}", p);
+                self.tx_pin.set_state((p != 0).into()).unwrap();
                 spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
             }
             ParityMode::Odd => {
-                println!("{}", !(p==1) as u8);
+                self.tx_pin.set_state((p != 0).into()).unwrap();
                 spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
             },
             ParityMode::None => {
@@ -80,7 +81,7 @@ impl hal::serial::Write<u8> for SoftUartTransmitter {
 
         // Emmit stop bits
         for _i in 0..self.stop_bits as u8 {
-            println!("1");
+            self.tx_pin.set_high().unwrap();
             spin_for(Duration::from_nanos(1_000_000_000/self.baud_rate as u64));
         }
 
